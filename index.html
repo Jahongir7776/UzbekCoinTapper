@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Clicker Bot</title>
+    <title>Uzbek Coin</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -237,8 +238,8 @@
 </head>
 <body>
     <div class="header">
-        <div class="coins-display" id="coinsDisplay">💰 {{ user.coins }} coins</div>
-        <div class="tap-power">⚡ Tap kuchi: <span id="tapPower">{{ user.tap_power }}</span></div>
+        <div class="coins-display" id="coinsDisplay">💰 0 coins</div>
+        <div class="tap-power">⚡ Tap kuchi: <span id="tapPower">1</span></div>
         <div class="tap-count">👆 Taplar: <span id="tapCount">0</span></div>
     </div>
     
@@ -255,7 +256,7 @@
             <div class="upgrade-section">
                 <h2>🚀 Tap kuchini oshirish</h2>
                 <p>Har bir tap uchun ko'proq coin oling!</p>
-                <p>Joriy daraja: <span id="currentLevel">{{ user.tap_power }}</span></p>
+                <p>Joriy daraja: <span id="currentLevel">1</span></p>
                 <p>Keyingi daraja narxi: <span id="upgradeCost">500</span> coins</p>
                 <button class="upgrade-button" id="upgradeButton">
                     Yaxshilash (500 coins)
@@ -303,9 +304,10 @@
     </div>
     
     <script>
-        const userId = {{ user.user_id }};
-        let currentCoins = {{ user.coins }};
-        let tapPower = {{ user.tap_power }};
+        const BOT_TOKEN = '8140599445:AAHQAL8tYirUxLfQGuK6kztGuNVlDuO7JNg';
+        let userId = null;
+        let currentCoins = 0;
+        let tapPower = 1;
         let tapCount = 0;
         
         const upgradeCosts = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
@@ -320,6 +322,14 @@
             200000: 'diamond',
             1000000: 'diamond'
         };
+        
+        // Initialize Telegram Web App
+        window.Telegram.WebApp.ready();
+        userId = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.id : null;
+        
+        if (!userId) {
+            alert('Telegram foydalanuvchisi aniqlanmadi. Iltimos, bot orqali kiring.');
+        }
         
         function updateDisplay() {
             document.getElementById('coinsDisplay').textContent = `💰 ${currentCoins.toLocaleString()} coins`;
@@ -373,44 +383,65 @@
             const y = e.clientY - rect.top;
             
             tapCount++;
+            currentCoins += tapPower;
             
-            fetch('/click', {
+            // Send click to Telegram bot
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ user_id: userId })
+                body: JSON.stringify({
+                    chat_id: userId,
+                    text: `Tap qilindi! +${tapPower} Uzbek Coin`
+                })
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    currentCoins = data.coins;
+                if (data.ok) {
                     updateDisplay();
-                    showClickEffect(e.clientX, e.clientY, data.earned);
+                    showClickEffect(e.clientX, e.clientY, tapPower);
+                } else {
+                    alert('Bot bilan aloqa xatosi: ' + data.description);
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Server bilan aloqa xatosi');
             });
         });
         
         document.getElementById('upgradeButton').addEventListener('click', function() {
-            fetch('/upgrade_tap', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user_id: userId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    currentCoins = data.coins;
-                    tapPower = data.tap_power;
-                    updateDisplay();
-                    updateUpgradeButton();
-                    alert(`Tap kuchi yaxshilandi! Yangi daraja: ${tapPower}`);
-                } else {
-                    alert(data.error);
-                }
-            });
+            const currentLevel = tapPower - 1;
+            const cost = upgradeCosts[currentLevel];
+            
+            if (currentCoins >= cost) {
+                currentCoins -= cost;
+                tapPower++;
+                
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: userId,
+                        text: `Tap kuchi yaxshilandi! Yangi daraja: ${tapPower}`
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        updateDisplay();
+                        updateUpgradeButton();
+                        alert(`Tap kuchi yaxshilandi! Yangi daraja: ${tapPower}`);
+                    } else {
+                        alert('Bot bilan aloqa xatosi: ' + data.description);
+                    }
+                });
+            } else {
+                alert('Yetarli coin yo\'q!');
+            }
         });
         
         function updateUpgradeButton() {
@@ -477,66 +508,84 @@
             }
             
             setTimeout(() => {
-                fetch('/complete_task', {
+                currentCoins += 2000;
+                
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ user_id: userId, task_id: taskId })
+                    body: JSON.stringify({
+                        chat_id: userId,
+                        text: `Topshiriq bajarildi! +2000 Uzbek Coin`
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        currentCoins = data.coins;
+                    if (data.ok) {
                         updateDisplay();
-                        alert(`Topshiriq bajarildi! +${data.reward} coins`);
+                        alert(`Topshiriq bajarildi! +2000 coins`);
                         loadTasks();
                     } else {
-                        alert(data.error);
+                        alert('Bot bilan aloqa xatosi: ' + data.description);
                     }
                 });
             }, 2000);
         }
         
         document.getElementById('offlineEarnButton').addEventListener('click', function() {
-            fetch('/buy_offline_earn', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user_id: userId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    currentCoins = data.coins;
-                    updateDisplay();
-                    alert('Offline earning faollashtirildi!');
-                    startOfflineTimer(data.offline_until);
-                } else {
-                    alert(data.error);
-                }
-            });
+            if (currentCoins >= 50000) {
+                currentCoins -= 50000;
+                const endTime = new Date().getTime() + 3 * 60 * 60 * 1000; // 3 soat
+                
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: userId,
+                        text: 'Offline earning faollashtirildi!'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        updateDisplay();
+                        alert('Offline earning faollashtirildi!');
+                        startOfflineTimer(endTime);
+                    } else {
+                        alert('Bot bilan aloqa xatosi: ' + data.description);
+                    }
+                });
+            } else {
+                alert('Yetarli coin yo\'q!');
+            }
         });
         
         document.getElementById('claimOfflineButton').addEventListener('click', function() {
-            fetch('/claim_offline', {
+            const earned = 10000; // Misol uchun 10,000 coin
+            currentCoins += earned;
+            
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user_id: userId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    currentCoins = data.coins;
-                    updateDisplay();
-                    alert(`Offline earnings olindi! +${data.earned} coins`);
-                } else {
-                    alert(data.error);
-                }
-            });
+                    },
+                    body: JSON.stringify({
+                        chat_id: userId,
+                        text: `Offline earnings olindi! +${earned} Uzbek Coin`
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        updateDisplay();
+                        alert(`Offline earnings olindi! +${earned} coins`);
+                    } else {
+                        alert('Bot bilan aloqa xatosi: ' + data.description);
+                    }
+                });
         });
         
         function startOfflineTimer(endTime) {
@@ -548,8 +597,7 @@
             
             const timer = setInterval(() => {
                 const now = new Date().getTime();
-                const end = new Date(endTime).getTime();
-                const distance = end - now;
+                const distance = endTime - now;
                 
                 if (distance > 0) {
                     const hours = Math.floor(distance / (1000 * 60 * 60));
