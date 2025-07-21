@@ -3,119 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Clicker Ball bilan</title>
+    <title>Coin Clicker Bot</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
+        
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
         }
-        .coins-display, .tap-power, .score-display {
-            font-size: 1.5em;
+        
+        .coins-display {
+            font-size: 2em;
+            font-weight: bold;
             margin: 10px 0;
         }
+        
+        .tap-power {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+        
+        .tap-count {
+            font-size: 1.1em;
+            margin: 10px 0;
+            opacity: 0.8;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
         .click-button {
             width: 200px;
             height: 200px;
             border-radius: 50%;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
             border: none;
             font-size: 3em;
-            color: #333;
             cursor: pointer;
+            transition: all 0.1s;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .click-button.bronze {
+            background: linear-gradient(45deg, #cd7f32, #a65e2e);
+        }
+        
+        .click-button.silver {
+            background: linear-gradient(45deg, #c0c0c0, #a9a9a9);
+        }
+        
+        .click-button.gold {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+        }
+        
+        .click-button.platinum {
+            background: linear-gradient(45deg, #e5e4e2, #b7b7b7);
+        }
+        
+        .click-button.diamond {
+            background: linear-gradient(45deg, #b9f2ff, #4b9cd3);
+        }
+        
         .click-button:active {
             transform: scale(0.95);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
+        
         .click-effect {
             position: absolute;
+            pointer-events: none;
             color: #00ff00;
             font-weight: bold;
             font-size: 1.5em;
             animation: float-up 1s ease-out forwards;
-            pointer-events: none;
         }
+        
         @keyframes float-up {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-50px); }
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+        
+        .bottom-menu {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .menu-item.active {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .menu-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .page {
+            display: none;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .upgrade-section {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .upgrade-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        
+        .upgrade-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .upgrade-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .task-item {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-info h3 {
+            margin-bottom: 5px;
+        }
+        
+        .task-info p {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        
+        .task-reward {
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .task-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .boost-section {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .offline-timer {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="coins-display" id="coinsDisplay">💰 0 coins</div>
-        <div class="tap-power">⚡ Tap kuchi: <span id="tapPower">1</span></div>
-        <div class="score-display">🏆 Ball: <span id="scoreDisplay">0</span></div>
+        <div class="coins-display" id="coinsDisplay">💰 {{ user.coins }} coins</div>
+        <div class="tap-power">⚡ Tap kuchi: <span id="tapPower">{{ user.tap_power }}</span></div>
+        <div class="tap-count">👆 Taplar: <span id="tapCount">0</span></div>
     </div>
-
-    <button class="click-button" id="clickButton">💰</button>
-
+    
+    <div class="main-content">
+        <!-- Main Game Page -->
+        <div id="gamePage" class="page active">
+            <button class="click-button bronze" id="clickButton">
+                💰
+            </button>
+        </div>
+        
+        <!-- Boost Page -->
+        <div id="boostPage" class="page">
+            <div class="upgrade-section">
+                <h2>🚀 Tap kuchini oshirish</h2>
+                <p>Har bir tap uchun ko'proq coin oling!</p>
+                <p>Joriy daraja: <span id="currentLevel">{{ user.tap_power }}</span></p>
+                <p>Keyingi daraja narxi: <span id="upgradeCost">500</span> coins</p>
+                <button class="upgrade-button" id="upgradeButton">
+                    Yaxshilash (500 coins)
+                </button>
+            </div>
+            
+            <div class="boost-section">
+                <h2>⏰ Offline Earnings</h2>
+                <p>3 soat davomida offline coin yig'ing!</p>
+                <p>Narxi: 50,000 coins</p>
+                <button class="upgrade-button" id="offlineEarnButton">
+                    Offline Earn sotib olish
+                </button>
+                <div id="offlineTimer" class="offline-timer" style="display: none;">
+                    ⏳ Offline earning: <span id="timerText">00:00:00</span>
+                </div>
+                <button class="upgrade-button" id="claimOfflineButton" style="display: none;">
+                    Offline coinlarni olish
+                </button>
+            </div>
+        </div>
+        
+        <!-- Earn Page -->
+        <div id="earnPage" class="page">
+            <h2>💼 Topshiriqlar</h2>
+            <div id="tasksList">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-menu">
+        <button class="menu-item active" onclick="showPage('gamePage', this)">
+            <div class="menu-icon">🎮</div>
+            <div>O'yin</div>
+        </button>
+        <button class="menu-item" onclick="showPage('boostPage', this)">
+            <div class="menu-icon">🚀</div>
+            <div>Boost</div>
+        </button>
+        <button class="menu-item" onclick="showPage('earnPage', this)">
+            <div class="menu-icon">💼</div>
+            <div>Earn</div>
+        </button>
+    </div>
+    
     <script>
-        let userId = 1; // Foydalanuvchi ID si
-        let currentCoins = 0;
-        let tapPower = 1;
-        let currentScore = 0;
-
+        const userId = {{ user.user_id }};
+        let currentCoins = {{ user.coins }};
+        let tapPower = {{ user.tap_power }};
+        let tapCount = 0;
+        
+        const upgradeCosts = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
+        const coinThresholds = {
+            1000: 'bronze',
+            2000: 'silver',
+            5000: 'gold',
+            10000: 'platinum',
+            20000: 'diamond',
+            50000: 'diamond',
+            100000: 'diamond',
+            200000: 'diamond',
+            1000000: 'diamond'
+        };
+        
         function updateDisplay() {
-            document.getElementById('coinsDisplay').textContent = `💰 ${currentCoins} coins`;
+            document.getElementById('coinsDisplay').textContent = `💰 ${currentCoins.toLocaleString()} coins`;
             document.getElementById('tapPower').textContent = tapPower;
-            document.getElementById('scoreDisplay').textContent = currentScore;
+            document.getElementById('tapCount').textContent = tapCount;
+            updateCoinAppearance();
         }
-
+        
+        function updateCoinAppearance() {
+            const clickButton = document.getElementById('clickButton');
+            clickButton.className = 'click-button'; // Reset classes
+            let currentClass = 'bronze';
+            
+            for (let threshold in coinThresholds) {
+                if (currentCoins >= parseInt(threshold)) {
+                    currentClass = coinThresholds[threshold];
+                }
+            }
+            
+            clickButton.classList.add(currentClass);
+        }
+        
+        function showPage(pageId, menuItem) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            menuItem.classList.add('active');
+            
+            if (pageId === 'earnPage') {
+                loadTasks();
+            }
+        }
+        
         function showClickEffect(x, y, coins) {
             const effect = document.createElement('div');
             effect.className = 'click-effect';
             effect.textContent = `+${coins}`;
             effect.style.left = `${x}px`;
             effect.style.top = `${y}px`;
-            effect.style.position = 'fixed';
             document.body.appendChild(effect);
-            setTimeout(() => document.body.removeChild(effect), 1000);
+            
+            setTimeout(() => {
+                document.body.removeChild(effect);
+            }, 1000);
         }
-
+        
         document.getElementById('clickButton').addEventListener('click', function(e) {
-            // Simulyatsiya uchun server o‘rniga local hisoblash
-            let earned = tapPower;
-            currentCoins += earned;
-            currentScore += earned;
-            updateDisplay();
-            showClickEffect(e.clientX, e.clientY, earned);
-
-            // Agar server ishlatilsa, fetch orqali quyidagidek yoziladi:
-            /*
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            tapCount++;
+            
             fetch('/click', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ user_id: userId })
             })
-            .then(res => res.json())
+            .then(response => response.json())
             .then(data => {
-                if(data.success){
+                if (data.success) {
                     currentCoins = data.coins;
-                    tapPower = data.tap_power;
-                    let earned = data.earned;
-                    currentScore += earned;
                     updateDisplay();
-                    showClickEffect(e.clientX, e.clientY, earned);
+                    showClickEffect(e.clientX, e.clientY, data.earned);
                 }
             });
-            */
         });
-
+        
+        document.getElementById('upgradeButton').addEventListener('click', function() {
+            fetch('/upgrade_tap', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentCoins = data.coins;
+                    tapPower = data.tap_power;
+                    updateDisplay();
+                    updateUpgradeButton();
+                    alert(`Tap kuchi yaxshilandi! Yangi daraja: ${tapPower}`);
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+        
+        function updateUpgradeButton() {
+            const currentLevel = tapPower - 1;
+            const upgradeButton = document.getElementById('upgradeButton');
+            const upgradeCostSpan = document.getElementById('upgradeCost');
+            const currentLevelSpan = document.getElementById('currentLevel');
+            
+            currentLevelSpan.textContent = tapPower;
+            
+            if (currentLevel >= upgradeCosts.length) {
+                upgradeButton.textContent = 'Maksimal daraja!';
+                upgradeButton.disabled = true;
+                upgradeCostSpan.textContent = '∞';
+            } else {
+                const cost = upgradeCosts[currentLevel];
+                upgradeButton.textContent = `Yaxshilash (${cost.toLocaleString()} coins)`;
+                upgradeButton.disabled = currentCoins < cost;
+                upgradeCostSpan.textContent = cost.toLocaleString();
+            }
+        }
+        
+        function loadTasks() {
+            const mockTasks = [
+                {
+                    id: 1,
+                    name: 'Telegram Guruh 1',
+                    description: 'Bizning Telegram guruhimizga qo\'shiling',
+                    reward: 2000,
+                    url: 'https://t.me/examplegroup1'
+                },
+                {
+                    id: 2,
+                    name: 'YouTube Kanal 1',
+                    description: 'YouTube kanalimizga obuna bo\'ling',
+                    reward: 2000,
+                    url: 'https://youtube.com/examplechannel'
+                }
+            ];
+            
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '';
+            
+            mockTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-item';
+                taskElement.innerHTML = `
+                    <div class="task-info">
+                        <h3>${task.name}</h3>
+                        <p>${task.description}</p>
+                        <div class="task-reward">💰 ${task.reward} coins</div>
+                    </div>
+                    <button class="task-button" onclick="completeTask(${task.id}, '${task.url}')">
+                        Bajarish
+                    </button>
+                `;
+                tasksList.appendChild(taskElement);
+            });
+        }
+        
+        function completeTask(taskId, taskUrl) {
+            if (taskUrl && taskUrl !== 'null') {
+                window.open(taskUrl, '_blank');
+            }
+            
+            setTimeout(() => {
+                fetch('/complete_task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_id: userId, task_id: taskId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentCoins = data.coins;
+                        updateDisplay();
+                        alert(`Topshiriq bajarildi! +${data.reward} coins`);
+                        loadTasks();
+                    } else {
+                        alert(data.error);
+                    }
+                });
+            }, 2000);
+        }
+        
+        document.getElementById('offlineEarnButton').addEventListener('click', function() {
+            fetch('/buy_offline_earn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentCoins = data.coins;
+                    updateDisplay();
+                    alert('Offline earning faollashtirildi!');
+                    startOfflineTimer(data.offline_until);
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+        
+        document.getElementById('claimOfflineButton').addEventListener('click', function() {
+            fetch('/claim_offline', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentCoins = data.coins;
+                    updateDisplay();
+                    alert(`Offline earnings olindi! +${data.earned} coins`);
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+        
+        function startOfflineTimer(endTime) {
+            const timerElement = document.getElementById('offlineTimer');
+            const timerText = document.getElementById('timerText');
+            const claimButton = document.getElementById('claimOfflineButton');
+            
+            timerElement.style.display = 'block';
+            
+            const timer = setInterval(() => {
+                const now = new Date().getTime();
+                const end = new Date(endTime).getTime();
+                const distance = end - now;
+                
+                if (distance > 0) {
+                    const hours = Math.floor(distance / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    timerText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    clearInterval(timer);
+                    timerElement.style.display = 'none';
+                    claimButton.style.display = 'block';
+                }
+            }, 1000);
+        }
+        
+        // Initialize
         updateDisplay();
+        updateUpgradeButton();
     </script>
 </body>
 </html>
