@@ -1,148 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>NotCoin Clicker Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #2f80ed, #56ccf2);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-    }
-    .container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-      max-width: 400px;
-      width: 90%;
-    }
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-    }
-    #coin-count {
-      font-size: 2rem;
-      margin: 20px 0;
-      font-weight: 600;
-    }
-    .click-btn {
-      background: #ffcc00;
-      color: #000;
-      font-weight: 700;
-      font-size: 1.5rem;
-      border: none;
-      border-radius: 15px;
-      padding: 15px 30px;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-    }
-    .click-btn:hover {
-      background: #ffd633;
-      transform: scale(1.05);
-    }
-    .upgrade-btn, .offline-btn {
-      background: #8e44ad;
-      margin: 10px 0;
-      color: #fff;
-      font-weight: 600;
-      border: none;
-      border-radius: 15px;
-      padding: 12px 25px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      transition: all 0.2s;
-      width: 100%;
-    }
-    .upgrade-btn:hover, .offline-btn:hover {
-      background: #9b59b6;
-      transform: scale(1.03);
-    }
-    .small {
-      font-size: 0.9rem;
-      opacity: 0.9;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Clicker Ball bilan</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .coins-display, .tap-power, .score-display {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        .click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            font-size: 3em;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        .click-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .click-effect {
+            position: absolute;
+            color: #00ff00;
+            font-weight: bold;
+            font-size: 1.5em;
+            animation: float-up 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>NotCoin Clicker</h1>
-    <div id="coin-count">Loading coins...</div>
-    <button class="click-btn" id="click-btn">TAP</button>
-    <button class="upgrade-btn" id="upgrade-btn">Upgrade Power</button>
-    <button class="offline-btn" id="offline-btn">Buy 3h Offline Earn</button>
-    <p class="small" id="status"></p>
-  </div>
+    <div class="header">
+        <div class="coins-display" id="coinsDisplay">💰 0 coins</div>
+        <div class="tap-power">⚡ Tap kuchi: <span id="tapPower">1</span></div>
+        <div class="score-display">🏆 Ball: <span id="scoreDisplay">0</span></div>
+    </div>
 
-  <script>
-    const telegram_id = new URLSearchParams(window.location.search).get('telegram_id');
-    const api_base = 'http://localhost:8000';
+    <button class="click-button" id="clickButton">💰</button>
 
-    async function fetchBalance() {
-      const res = await fetch(`${api_base}/balance?telegram_id=${telegram_id}`);
-      const data = await res.json();
-      document.getElementById('coin-count').innerText = `${data.coins} coins (Level ${data.level})`;
-    }
+    <script>
+        let userId = 1; // Foydalanuvchi ID si
+        let currentCoins = 0;
+        let tapPower = 1;
+        let currentScore = 0;
 
-    async function clickTap() {
-      const res = await fetch(`${api_base}/click`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({telegram_id})
-      });
-      const data = await res.json();
-      document.getElementById('coin-count').innerText = `${data.coins} coins (Level ${data.power - 1})`;
-    }
+        function updateDisplay() {
+            document.getElementById('coinsDisplay').textContent = `💰 ${currentCoins} coins`;
+            document.getElementById('tapPower').textContent = tapPower;
+            document.getElementById('scoreDisplay').textContent = currentScore;
+        }
 
-    async function upgrade() {
-      const res = await fetch(`${api_base}/upgrade`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({telegram_id})
-      });
-      if (res.status === 200) {
-        const data = await res.json();
-        document.getElementById('status').innerText = `Upgraded to level ${data.new_level}`;
-        fetchBalance();
-      } else {
-        const error = await res.json();
-        document.getElementById('status').innerText = error.detail;
-      }
-    }
+        function showClickEffect(x, y, coins) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = `+${coins}`;
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+            effect.style.position = 'fixed';
+            document.body.appendChild(effect);
+            setTimeout(() => document.body.removeChild(effect), 1000);
+        }
 
-    async function buyOffline() {
-      const res = await fetch(`${api_base}/offline`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({telegram_id})
-      });
-      if (res.status === 200) {
-        const data = await res.json();
-        document.getElementById('status').innerText = `Offline earnings until: ${new Date(data.offline_until).toLocaleTimeString()}`;
-        fetchBalance();
-      } else {
-        const error = await res.json();
-        document.getElementById('status').innerText = error.detail;
-      }
-    }
+        document.getElementById('clickButton').addEventListener('click', function(e) {
+            // Simulyatsiya uchun server o‘rniga local hisoblash
+            let earned = tapPower;
+            currentCoins += earned;
+            currentScore += earned;
+            updateDisplay();
+            showClickEffect(e.clientX, e.clientY, earned);
 
-    document.getElementById('click-btn').onclick = clickTap;
-    document.getElementById('upgrade-btn').onclick = upgrade;
-    document.getElementById('offline-btn').onclick = buyOffline;
+            // Agar server ishlatilsa, fetch orqali quyidagidek yoziladi:
+            /*
+            fetch('/click', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success){
+                    currentCoins = data.coins;
+                    tapPower = data.tap_power;
+                    let earned = data.earned;
+                    currentScore += earned;
+                    updateDisplay();
+                    showClickEffect(e.clientX, e.clientY, earned);
+                }
+            });
+            */
+        });
 
-    fetchBalance();
-    setInterval(fetchBalance, 10000);
-  </script>
+        updateDisplay();
+    </script>
 </body>
 </html>
