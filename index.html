@@ -33,6 +33,49 @@
             margin: 10px 0;
         }
         
+        .level-display {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #FFD700;
+            margin: 5px 0;
+        }
+        
+        .xp-container {
+            margin: 10px 0;
+        }
+        
+        .xp-bar {
+            width: 80%;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 10px auto;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+        
+        .xp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .energy-display {
+            font-size: 1.1em;
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        
         .tap-power {
             font-size: 1.2em;
             opacity: 0.8;
@@ -53,12 +96,20 @@
             padding: 20px;
         }
         
+        .level-indicator {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
         .click-button {
             width: 200px;
             height: 200px;
             border-radius: 50%;
             border: none;
-            font-size: 3em;
+            font-size: 4em;
             cursor: pointer;
             transition: all 0.1s;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -67,29 +118,54 @@
             overflow: hidden;
         }
         
-        .click-button.bronze {
-            background: linear-gradient(45deg, #cd7f32, #a65e2e);
+        .click-button.level-1 {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
         }
         
-        .click-button.silver {
-            background: linear-gradient(45deg, #c0c0c0, #a9a9a9);
+        .click-button.level-2 {
+            background: linear-gradient(45deg, #CD853F, #DEB887);
         }
         
-        .click-button.gold {
+        .click-button.level-3 {
+            background: linear-gradient(45deg, #C0C0C0, #D3D3D3);
+        }
+        
+        .click-button.level-4 {
             background: linear-gradient(45deg, #FFD700, #FFA500);
         }
         
-        .click-button.platinum {
+        .click-button.level-5 {
             background: linear-gradient(45deg, #e5e4e2, #b7b7b7);
         }
         
-        .click-button.diamond {
+        .click-button.level-6 {
             background: linear-gradient(45deg, #b9f2ff, #4b9cd3);
+        }
+        
+        .click-button.level-7 {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        }
+        
+        .click-button.level-8 {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        
+        .click-button.level-9 {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+        
+        .click-button.level-10 {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
         }
         
         .click-button:active {
             transform: scale(0.95);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .click-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .click-effect {
@@ -219,6 +295,11 @@
             transition: all 0.3s;
         }
         
+        .task-button.completed {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
         .boost-section {
             background: rgba(0,0,0,0.2);
             padding: 20px;
@@ -234,19 +315,45 @@
             margin: 10px 0;
             font-family: monospace;
         }
+        
+        .referral-section {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .referral-link {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="coins-display" id="coinsDisplay">💰 0 coins</div>
-        <div class="tap-power">⚡ Tap kuchi: <span id="tapPower">1</span></div>
+        <div class="level-display" id="levelDisplay">⭐ Level 1</div>
+        <div class="xp-container">
+            <div class="xp-bar">
+                <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+                <div class="xp-text" id="xpText">0 / 1000 XP</div>
+            </div>
+        </div>
+        <div class="energy-display" id="energyDisplay">⚡ Energy: 1000 / 1000</div>
+        <div class="tap-power">🔥 Tap kuchi: <span id="tapPower">1</span></div>
         <div class="tap-count">👆 Taplar: <span id="tapCount">0</span></div>
     </div>
     
     <div class="main-content">
         <!-- Main Game Page -->
         <div id="gamePage" class="page active">
-            <button class="click-button bronze" id="clickButton">
+            <div class="level-indicator" id="levelIndicator">Level 1</div>
+            <button class="click-button level-1" id="clickButton">
                 💰
             </button>
         </div>
@@ -256,10 +363,20 @@
             <div class="upgrade-section">
                 <h2>🚀 Tap kuchini oshirish</h2>
                 <p>Har bir tap uchun ko'proq coin oling!</p>
-                <p>Joriy daraja: <span id="currentLevel">1</span></p>
-                <p>Keyingi daraja narxi: <span id="upgradeCost">500</span> coins</p>
-                <button class="upgrade-button" id="upgradeButton">
+                <p>Joriy daraja: <span id="currentTapLevel">1</span></p>
+                <p>Keyingi daraja narxi: <span id="tapUpgradeCost">500</span> coins</p>
+                <button class="upgrade-button" id="tapUpgradeButton">
                     Yaxshilash (500 coins)
+                </button>
+            </div>
+            
+            <div class="upgrade-section">
+                <h2>⚡ Energiyani oshirish</h2>
+                <p>Maksimal energiya miqdorini oshiring!</p>
+                <p>Joriy maksimal: <span id="currentEnergyLevel">1000</span></p>
+                <p>Keyingi daraja narxi: <span id="energyUpgradeCost">1000</span> coins</p>
+                <button class="upgrade-button" id="energyUpgradeButton">
+                    Energiya yaxshilash (1000 coins)
                 </button>
             </div>
             
@@ -281,6 +398,17 @@
         
         <!-- Earn Page -->
         <div id="earnPage" class="page">
+            <div class="referral-section">
+                <h2>👥 Do'stlarni taklif qiling</h2>
+                <p>Har bir do'st uchun siz va do'stingiz 2000 coindan olasiz!</p>
+                <div class="referral-link" id="referralLink">
+                    https://t.me/your_bot?start=ref_123456
+                </div>
+                <button class="upgrade-button" onclick="copyReferralLink()">
+                    Linkni nusxalash
+                </button>
+            </div>
+            
             <h2>💼 Topshiriqlar</h2>
             <div id="tasksList">
                 <!-- Tasks will be loaded here -->
@@ -309,18 +437,37 @@
         let currentCoins = 0;
         let tapPower = 1;
         let tapCount = 0;
+        let currentLevel = 1;
+        let currentXP = 0;
+        let currentEnergy = 1000;
+        let maxEnergy = 1000;
+        let energyLevel = 1;
+        let tapUpgradeLevel = 1;
         
-        const upgradeCosts = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
-        const coinThresholds = {
-            1000: 'bronze',
-            2000: 'silver',
-            5000: 'gold',
-            10000: 'platinum',
-            20000: 'diamond',
-            50000: 'diamond',
-            100000: 'diamond',
-            200000: 'diamond',
-            1000000: 'diamond'
+        // Completed tasks storage
+        let completedTasks = [];
+        
+        // Level requirements (XP needed to reach next level)
+        const levelRequirements = [1000, 2500, 5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000];
+        
+        // Tap upgrade costs
+        const tapUpgradeCosts = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
+        
+        // Energy upgrade costs
+        const energyUpgradeCosts = [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000];
+        
+        // Currency symbols for each level
+        const currencySymbols = {
+            1: '💰', // Coins
+            2: '🪙', // Copper coins
+            3: '💎', // Silver
+            4: '🥇', // Gold
+            5: '💍', // Platinum
+            6: '💠', // Diamond
+            7: '🔥', // Ruby
+            8: '💜', // Amethyst
+            9: '💚', // Emerald
+            10: '👑' // Crown
         };
         
         // Initialize Telegram Web App
@@ -331,25 +478,76 @@
             alert('Telegram foydalanuvchisi aniqlanmadi. Iltimos, bot orqali kiring.');
         }
         
+        // Energy regeneration
+        setInterval(() => {
+            if (currentEnergy < maxEnergy) {
+                currentEnergy = Math.min(maxEnergy, currentEnergy + 1);
+                updateDisplay();
+            }
+        }, 1000);
+        
         function updateDisplay() {
             document.getElementById('coinsDisplay').textContent = `💰 ${currentCoins.toLocaleString()} coins`;
+            document.getElementById('levelDisplay').textContent = `⭐ Level ${currentLevel}`;
             document.getElementById('tapPower').textContent = tapPower;
             document.getElementById('tapCount').textContent = tapCount;
+            document.getElementById('energyDisplay').textContent = `⚡ Energy: ${currentEnergy} / ${maxEnergy}`;
+            document.getElementById('levelIndicator').textContent = `Level ${currentLevel}`;
+            
+            updateXPBar();
             updateCoinAppearance();
+            updateUpgradeButtons();
+        }
+        
+        function updateXPBar() {
+            const xpFill = document.getElementById('xpFill');
+            const xpText = document.getElementById('xpText');
+            
+            let requiredXP;
+            if (currentLevel <= levelRequirements.length) {
+                requiredXP = levelRequirements[currentLevel - 1];
+                const percentage = Math.min(100, (currentXP / requiredXP) * 100);
+                xpFill.style.width = percentage + '%';
+                xpText.textContent = `${currentXP} / ${requiredXP} XP`;
+                
+                // Check for level up
+                if (currentXP >= requiredXP) {
+                    levelUp();
+                }
+            } else {
+                xpFill.style.width = '100%';
+                xpText.textContent = 'MAX LEVEL';
+            }
+        }
+        
+        function levelUp() {
+            currentLevel++;
+            currentXP = 0;
+            currentCoins += 50000;
+            
+            // Update display with new level
+            updateDisplay();
+            
+            // Show level up message
+            alert(`🎉 Tabriklaymiz! ${currentLevel} levelga o'tdingiz! +50,000 coins!`);
+            
+            // Send to bot
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: userId,
+                    text: `🎉 Level up! Yangi level: ${currentLevel}. +50,000 Uzbek Coin!`
+                })
+            });
         }
         
         function updateCoinAppearance() {
             const clickButton = document.getElementById('clickButton');
-            clickButton.className = 'click-button'; // Reset classes
-            let currentClass = 'bronze';
-            
-            for (let threshold in coinThresholds) {
-                if (currentCoins >= parseInt(threshold)) {
-                    currentClass = coinThresholds[threshold];
-                }
-            }
-            
-            clickButton.classList.add(currentClass);
+            clickButton.className = `click-button level-${currentLevel}`;
+            clickButton.textContent = currencySymbols[currentLevel] || '👑';
         }
         
         function showPage(pageId, menuItem) {
@@ -361,6 +559,7 @@
             
             if (pageId === 'earnPage') {
                 loadTasks();
+                updateReferralLink();
             }
         }
         
@@ -378,12 +577,22 @@
         }
         
         document.getElementById('clickButton').addEventListener('click', function(e) {
+            if (currentEnergy <= 0) {
+                alert('Energiya tugadi! Biroz kuting yoki energiyani kuchaytiring.');
+                return;
+            }
+            
             const rect = e.target.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             
             tapCount++;
             currentCoins += tapPower;
+            currentXP += tapPower;
+            currentEnergy--;
+            
+            updateDisplay();
+            showClickEffect(e.clientX, e.clientY, tapPower);
             
             // Send click to Telegram bot
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -396,28 +605,21 @@
                     text: `Tap qilindi! +${tapPower} Uzbek Coin`
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.ok) {
-                    updateDisplay();
-                    showClickEffect(e.clientX, e.clientY, tapPower);
-                } else {
-                    alert('Bot bilan aloqa xatosi: ' + data.description);
-                }
-            })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Server bilan aloqa xatosi');
             });
         });
         
-        document.getElementById('upgradeButton').addEventListener('click', function() {
-            const currentLevel = tapPower - 1;
-            const cost = upgradeCosts[currentLevel];
+        document.getElementById('tapUpgradeButton').addEventListener('click', function() {
+            const cost = tapUpgradeCosts[tapUpgradeLevel - 1];
             
             if (currentCoins >= cost) {
                 currentCoins -= cost;
                 tapPower++;
+                tapUpgradeLevel++;
+                
+                updateDisplay();
+                alert(`Tap kuchi yaxshilandi! Yangi kuch: ${tapPower}`);
                 
                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -428,40 +630,87 @@
                         chat_id: userId,
                         text: `Tap kuchi yaxshilandi! Yangi daraja: ${tapPower}`
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        updateDisplay();
-                        updateUpgradeButton();
-                        alert(`Tap kuchi yaxshilandi! Yangi daraja: ${tapPower}`);
-                    } else {
-                        alert('Bot bilan aloqa xatosi: ' + data.description);
-                    }
                 });
             } else {
                 alert('Yetarli coin yo\'q!');
             }
         });
         
-        function updateUpgradeButton() {
-            const currentLevel = tapPower - 1;
-            const upgradeButton = document.getElementById('upgradeButton');
-            const upgradeCostSpan = document.getElementById('upgradeCost');
-            const currentLevelSpan = document.getElementById('currentLevel');
+        document.getElementById('energyUpgradeButton').addEventListener('click', function() {
+            const cost = energyUpgradeCosts[energyLevel - 1];
             
-            currentLevelSpan.textContent = tapPower;
-            
-            if (currentLevel >= upgradeCosts.length) {
-                upgradeButton.textContent = 'Maksimal daraja!';
-                upgradeButton.disabled = true;
-                upgradeCostSpan.textContent = '∞';
+            if (currentCoins >= cost) {
+                currentCoins -= cost;
+                energyLevel++;
+                maxEnergy += 500;
+                currentEnergy = maxEnergy;
+                
+                updateDisplay();
+                alert(`Energiya yaxshilandi! Yangi maksimal: ${maxEnergy}`);
+                
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: userId,
+                        text: `Energiya yaxshilandi! Yangi maksimal: ${maxEnergy}`
+                    })
+                });
             } else {
-                const cost = upgradeCosts[currentLevel];
-                upgradeButton.textContent = `Yaxshilash (${cost.toLocaleString()} coins)`;
-                upgradeButton.disabled = currentCoins < cost;
-                upgradeCostSpan.textContent = cost.toLocaleString();
+                alert('Yetarli coin yo\'q!');
             }
+        });
+        
+        function updateUpgradeButtons() {
+            // Tap upgrade button
+            const tapUpgradeButton = document.getElementById('tapUpgradeButton');
+            const tapUpgradeCostSpan = document.getElementById('tapUpgradeCost');
+            const currentTapLevelSpan = document.getElementById('currentTapLevel');
+            
+            currentTapLevelSpan.textContent = tapPower;
+            
+            if (tapUpgradeLevel - 1 >= tapUpgradeCosts.length) {
+                tapUpgradeButton.textContent = 'Maksimal daraja!';
+                tapUpgradeButton.disabled = true;
+                tapUpgradeCostSpan.textContent = '∞';
+            } else {
+                const cost = tapUpgradeCosts[tapUpgradeLevel - 1];
+                tapUpgradeButton.textContent = `Yaxshilash (${cost.toLocaleString()} coins)`;
+                tapUpgradeButton.disabled = currentCoins < cost;
+                tapUpgradeCostSpan.textContent = cost.toLocaleString();
+            }
+            
+            // Energy upgrade button
+            const energyUpgradeButton = document.getElementById('energyUpgradeButton');
+            const energyUpgradeCostSpan = document.getElementById('energyUpgradeCost');
+            const currentEnergyLevelSpan = document.getElementById('currentEnergyLevel');
+            
+            currentEnergyLevelSpan.textContent = maxEnergy;
+            
+            if (energyLevel - 1 >= energyUpgradeCosts.length) {
+                energyUpgradeButton.textContent = 'Maksimal daraja!';
+                energyUpgradeButton.disabled = true;
+                energyUpgradeCostSpan.textContent = '∞';
+            } else {
+                const cost = energyUpgradeCosts[energyLevel - 1];
+                energyUpgradeButton.textContent = `Energiya yaxshilash (${cost.toLocaleString()} coins)`;
+                energyUpgradeButton.disabled = currentCoins < cost;
+                energyUpgradeCostSpan.textContent = cost.toLocaleString();
+            }
+        }
+        
+        function updateReferralLink() {
+            const referralLink = document.getElementById('referralLink');
+            referralLink.textContent = `https://t.me/your_bot?start=ref_${userId}`;
+        }
+        
+        function copyReferralLink() {
+            const link = document.getElementById('referralLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Referral link nusxalandi!');
+            });
         }
         
         function loadTasks() {
@@ -479,6 +728,20 @@
                     description: 'YouTube kanalimizga obuna bo\'ling',
                     reward: 2000,
                     url: 'https://youtube.com/examplechannel'
+                },
+                {
+                    id: 3,
+                    name: 'Instagram sahifa',
+                    description: 'Instagram sahifamizni kuzating',
+                    reward: 1500,
+                    url: 'https://instagram.com/example'
+                },
+                {
+                    id: 4,
+                    name: 'Twitter Follow',
+                    description: 'Twitter da bizni kuzating',
+                    reward: 1500,
+                    url: 'https://twitter.com/example'
                 }
             ];
             
@@ -486,6 +749,7 @@
             tasksList.innerHTML = '';
             
             mockTasks.forEach(task => {
+                const isCompleted = completedTasks.includes(task.id);
                 const taskElement = document.createElement('div');
                 taskElement.className = 'task-item';
                 taskElement.innerHTML = `
@@ -494,8 +758,8 @@
                         <p>${task.description}</p>
                         <div class="task-reward">💰 ${task.reward} coins</div>
                     </div>
-                    <button class="task-button" onclick="completeTask(${task.id}, '${task.url}')">
-                        Bajarish
+                    <button class="task-button ${isCompleted ? 'completed' : ''}" ${isCompleted ? 'disabled' : ''} onclick="completeTask(${task.id}, '${task.url}')">
+                        ${isCompleted ? 'Bajarilgan' : 'Bajarish'}
                     </button>
                 `;
                 tasksList.appendChild(taskElement);
@@ -503,12 +767,23 @@
         }
         
         function completeTask(taskId, taskUrl) {
+            if (completedTasks.includes(taskId)) {
+                return;
+            }
+            
             if (taskUrl && taskUrl !== 'null') {
                 window.open(taskUrl, '_blank');
             }
             
             setTimeout(() => {
-                currentCoins += 2000;
+                const reward = 2000;
+                currentCoins += reward;
+                currentXP += reward;
+                completedTasks.push(taskId);
+                
+                updateDisplay();
+                alert(`Topshiriq bajarildi! +${reward} coins`);
+                loadTasks(); // Reload tasks to update UI
                 
                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -517,105 +792,26 @@
                     },
                     body: JSON.stringify({
                         chat_id: userId,
-                        text: `Topshiriq bajarildi! +2000 Uzbek Coin`
+                        text: `Topshiriq bajarildi! +${reward} Uzbek Coin`
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        updateDisplay();
-                        alert(`Topshiriq bajarildi! +2000 coins`);
-                        loadTasks();
-                    } else {
-                        alert('Bot bilan aloqa xatosi: ' + data.description);
-                    }
                 });
             }, 2000);
         }
         
-        document.getElementById('offlineEarnButton').addEventListener('click', function() {
-            if (currentCoins >= 50000) {
-                currentCoins -= 50000;
-                const endTime = new Date().getTime() + 3 * 60 * 60 * 1000; // 3 soat
-                
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        chat_id: userId,
-                        text: 'Offline earning faollashtirildi!'
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        updateDisplay();
-                        alert('Offline earning faollashtirildi!');
-                        startOfflineTimer(endTime);
-                    } else {
-                        alert('Bot bilan aloqa xatosi: ' + data.description);
-                    }
-                });
-            } else {
-                alert('Yetarli coin yo\'q!');
-            }
-        });
-        
-        document.getElementById('claimOfflineButton').addEventListener('click', function() {
-            const earned = 10000; // Misol uchun 10,000 coin
-            currentCoins += earned;
+        // Handle referral rewards
+        function handleReferralReward() {
+            currentCoins += 2000;
+            currentXP += 2000;
+            updateDisplay();
+            alert('Yangi do\'st taklif qilganingiz uchun +2000 coins!');
             
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        chat_id: userId,
-                        text: `Offline earnings olindi! +${earned} Uzbek Coin`
-                    })
+                },
+                body: JSON.stringify({
+                    chat_id: userId,
+                    text: 'Yangi do\'st taklif qilganingiz uchun +2000 Uzbek Coin!'
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        updateDisplay();
-                        alert(`Offline earnings olindi! +${earned} coins`);
-                    } else {
-                        alert('Bot bilan aloqa xatosi: ' + data.description);
-                    }
-                });
-        });
-        
-        function startOfflineTimer(endTime) {
-            const timerElement = document.getElementById('offlineTimer');
-            const timerText = document.getElementById('timerText');
-            const claimButton = document.getElementById('claimOfflineButton');
             
-            timerElement.style.display = 'block';
-            
-            const timer = setInterval(() => {
-                const now = new Date().getTime();
-                const distance = endTime - now;
-                
-                if (distance > 0) {
-                    const hours = Math.floor(distance / (1000 * 60 * 60));
-                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                    
-                    timerText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                } else {
-                    clearInterval(timer);
-                    timerElement.style.display = 'none';
-                    claimButton.style.display = 'block';
-                }
-            }, 1000);
-        }
-        
-        // Initialize
-        updateDisplay();
-        updateUpgradeButton();
-    </script>
-</body>
-</html>
