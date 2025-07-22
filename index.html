@@ -359,34 +359,38 @@
     </div>
     
     <script>
-        const API_URL = 'YOUR_API_ENDPOINT'; // Replace with your actual backend API endpoint
+        // Bu yerda backend server manzilini kiriting (masalan, mahalliy kompyuter uchun)
+        const API_URL = 'http://localhost:8000'; // Backend server manzili
         let userId = null;
         let userData = {
-            coins: 0,
-            tap_power: 1,
-            tap_count: 0,
-            level: 1,
-            xp: 0,
-            max_xp: 1000,
-            energy: 1000,
-            max_energy: 1000,
-            offline_earn_end: null,
-            completed_tasks: []
+            coins: 0,         // Foydalanuvchining coin miqdori
+            tap_power: 1,     // Har bir tapda qo'shiladigan coin miqdori
+            tap_count: 0,     // Umumiy tap soni
+            level: 1,         // Foydalanuvchi darajasi
+            xp: 0,            // Tajriba ballari
+            max_xp: 1000,     // Keyingi daraja uchun kerak bo'lgan XP
+            energy: 1000,     // Energiya miqdori
+            max_energy: 1000, // Maksimal energiya
+            offline_earn_end: null, // Offline coin olish vaqti
+            completed_tasks: [] // Bajarilgan topshiriqlar ro'yxati
         };
         
+        // Har bir darajadagi valyuta belgisi
         const currencySymbols = {
             1: '💰', 2: '🪙', 3: '💎', 4: '🥇', 5: '💍',
             6: '💠', 7: '🔥', 8: '💜', 9: '💚', 10: '👑'
         };
         
+        // Har bir darajaga o'tish uchun kerak bo'lgan XP
         const levelRequirements = [1000, 2500, 5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000];
-        const tapUpgradeCosts = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
-        const energyUpgradeCosts = [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000];
+        const tapUpgradeCosts = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000]; // Tap kuchini oshirish narxi
+        const energyUpgradeCosts = [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000]; // Energiya oshirish narxi
         
-        // Initialize Telegram Web App
+        // Telegram Web App-ni ishga tushirish
         window.Telegram.WebApp.ready();
         userId = window.Telegram.WebApp.initDataUnsafe.user ? window.Telegram.WebApp.initDataUnsafe.user.id : null;
         
+        // Agar foydalanuvchi ID topilmasa, tugmalarni o'chirish
         if (!userId) {
             alert('Telegram foydalanuvchisi aniqlanmadi. Iltimos, bot orqali kiring.');
             document.getElementById('clickButton').disabled = true;
@@ -394,39 +398,57 @@
             document.getElementById('energyUpgradeButton').disabled = true;
             document.getElementById('offlineEarnButton').disabled = true;
         } else {
-            fetchUserData();
+            fetchUserData(); // Foydalanuvchi ma'lumotlarini olish
         }
         
+        // Sahifalar o'rtasida o'tish funksiyasi
         function showPage(pageId, menuItem) {
+            // Barcha sahifalarni yashirish
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            // Tanlangan sahifani ko'rsatish
             document.getElementById(pageId).classList.add('active');
             menuItem.classList.add('active');
             
             if (pageId === 'earnPage') {
-                loadTasks();
-                updateReferralLink();
+                loadTasks(); // Topshiriqlarni yuklash
+                updateReferralLink(); // Referral havolasi yangilanishi
             }
         }
         
+        // Foydalanuvchi ma'lumotlarini serverdan olish
         async function fetchUserData() {
             try {
                 const response = await fetch(`${API_URL}/user/${userId}`);
                 if (response.ok) {
                     userData = await response.json();
-                    userData.completed_tasks = JSON.parse(userData.completed_tasks || '[]');
-                    updateDisplay();
+                    userData.completed_tasks = JSON.parse(userData.completed_tasks || '[]'); // Topshiriqlar ro'yxatini o'zgartirish
+                    updateDisplay(); // Ekranni yangilash
                     loadTasks();
                     updateReferralLink();
                     checkOfflineEarnings();
-                } else {
-                    console.error('Failed to fetch user data:', response.status);
+                } else if (response.status === 404) {
+                    // Agar foydalanuvchi topilmasa, yangi foydalanuvchi yaratish
+                    await updateUserData({
+                        user_id: userId,
+                        coins: 0,
+                        tap_power: 1,
+                        tap_count: 0,
+                        level: 1,
+                        xp: 0,
+                        max_xp: 1000,
+                        energy: 1000,
+                        max_energy: 1000,
+                        offline_earn_end: null,
+                        completed_tasks: '[]'
+                    });
                 }
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error('Foydalanuvchi ma\'lumotlarini olishda xatolik:', error);
             }
         }
         
+        // Foydalanuvchi ma'lumotlarini serverga yuborish
         async function updateUserData(data) {
             try {
                 const response = await fetch(`${API_URL}/user/${userId}`, {
@@ -435,19 +457,26 @@
                     body: JSON.stringify({ ...userData, ...data })
                 });
                 if (response.ok) {
-                    userData = await response.json();
+                    userData = await response.json(); // Yangilangan ma'lumotlarni olish
                     userData.completed_tasks = JSON.parse(userData.completed_tasks || '[]');
-                    updateDisplay();
+                    console.log('Yangilangan ma\'lumotlar:', userData); // Debugging uchun
+                    updateDisplay(); // Ekranni yangilash
                 } else {
-                    console.error('Failed to update user data:', response.status);
+                    console.error('Ma\'lumotlarni yangilashda xatolik:', response.status);
                 }
             } catch (error) {
-                console.error('Error updating user data:', error);
+                console.error('Ma\'lumotlarni yangilashda xatolik:', error);
             }
         }
         
+        // Ekranidagi ma'lumotlarni yangilash
         function updateDisplay() {
-            document.getElementById('coinsDisplay').textContent = `${currencySymbols[userData.level] || '👑'} ${userData.coins.toLocaleString()} coins`;
+            const coinsDisplay = document.getElementById('coinsDisplay');
+            if (coinsDisplay) {
+                coinsDisplay.textContent = `${currencySymbols[userData.level] || '👑'} ${userData.coins.toLocaleString()} coins`;
+            } else {
+                console.error('coinsDisplay elementi topilmadi'); // Agar element topilmasa xabar berish
+            }
             document.getElementById('levelDisplay').textContent = `⭐ Level ${userData.level}`;
             document.getElementById('tapPower').textContent = userData.tap_power;
             document.getElementById('tapCount').textContent = userData.tap_count;
@@ -456,15 +485,16 @@
             document.getElementById('currentTapLevel').textContent = userData.tap_power;
             document.getElementById('currentEnergyLevel').textContent = userData.max_energy;
             
-            updateXPBar();
-            updateCoinAppearance();
-            updateUpgradeButtons();
+            updateXPBar(); // XP panelini yangilash
+            updateCoinAppearance(); // Tugma ko'rinishini yangilash
+            updateUpgradeButtons(); // Yaxshilash tugmalarini yangilash
+            console.log('Ko\'rsatilgan coinlar:', userData.coins); // Debugging uchun
         }
         
+        // XP panelini yangilash
         function updateXPBar() {
             const xpFill = document.getElementById('xpFill');
             const xpText = document.getElementById('xpText');
-            
             if (userData.level <= levelRequirements.length) {
                 const requiredXP = levelRequirements[userData.level - 1];
                 const percentage = Math.min(100, (userData.xp / requiredXP) * 100);
@@ -476,12 +506,14 @@
             }
         }
         
+        // Tugma ko'rinishini darajaga qarab o'zgartirish
         function updateCoinAppearance() {
             const clickButton = document.getElementById('clickButton');
             clickButton.className = `click-button level-${userData.level}`;
             clickButton.textContent = currencySymbols[userData.level] || '👑';
         }
         
+        // Tap effekti yaratish
         function showClickEffect(x, y, coins) {
             const effect = document.createElement('div');
             effect.className = 'click-effect';
@@ -492,6 +524,7 @@
             setTimeout(() => document.body.removeChild(effect), 1000);
         }
         
+        // Tap tugmasi bosilganda ishlaydigan kod
         document.getElementById('clickButton').addEventListener('click', async function(e) {
             if (userData.energy <= 0) {
                 alert('Energiya tugadi! Biroz kuting yoki energiyani kuchaytiring.');
@@ -502,18 +535,20 @@
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             
-            userData.tap_count++;
-            userData.coins += userData.tap_power;
-            userData.xp += userData.tap_power;
-            userData.energy--;
+            userData.tap_count++; // Tap sonini oshirish
+            userData.coins += userData.tap_power; // Coin qo'shish
+            userData.xp += userData.tap_power; // XP qo'shish
+            userData.energy--; // Energiyani kamaytirish
             
+            // Agar yangi daraja uchun yetarli XP bo'lsa
             if (userData.xp >= levelRequirements[userData.level - 1] && userData.level <= levelRequirements.length) {
-                userData.level++;
-                userData.xp = 0;
-                userData.coins += 50000;
+                userData.level++; // Darajani oshirish
+                userData.xp = 0; // XP-ni qayta boshlash
+                userData.coins += 50000; // Bonus coin qo'shish
                 alert(`🎉 Tabriklaymiz! ${userData.level} levelga o'tdingiz! +50,000 coins!`);
             }
             
+            // Serverga yangi ma'lumotlarni yuborish
             await updateUserData({
                 tap_count: userData.tap_count,
                 coins: userData.coins,
@@ -522,9 +557,10 @@
                 energy: userData.energy
             });
             
-            showClickEffect(e.clientX, e.clientY, userData.tap_power);
+            showClickEffect(e.clientX, e.clientY, userData.tap_power); // Effekt ko'rsatish
         });
         
+        // Tap kuchini yaxshilash
         document.getElementById('tapUpgradeButton').addEventListener('click', async function() {
             const cost = tapUpgradeCosts[userData.tap_power - 1];
             if (userData.coins >= cost && userData.tap_power <= tapUpgradeCosts.length) {
@@ -540,6 +576,7 @@
             }
         });
         
+        // Energiyani yaxshilash
         document.getElementById('energyUpgradeButton').addEventListener('click', async function() {
             const cost = energyUpgradeCosts[Math.floor(userData.max_energy / 500 - 1)];
             if (userData.coins >= cost && userData.max_energy / 500 <= energyUpgradeCosts.length) {
@@ -557,6 +594,7 @@
             }
         });
         
+        // Offline earnings sotib olish
         document.getElementById('offlineEarnButton').addEventListener('click', async function() {
             if (userData.coins >= 50000) {
                 userData.coins -= 50000;
@@ -572,9 +610,10 @@
             }
         });
         
+        // Offline coinlarni olish
         document.getElementById('claimOfflineButton').addEventListener('click', async function() {
             if (userData.offline_earn_end && new Date(userData.offline_earn_end) <= new Date()) {
-                userData.coins += 10000; // Example reward
+                userData.coins += 10000; // Misol uchun 10,000 coin
                 userData.offline_earn_end = null;
                 await updateUserData({
                     coins: userData.coins,
@@ -585,6 +624,7 @@
             }
         });
         
+        // Yaxshilash tugmalarini yangilash
         function updateUpgradeButtons() {
             const tapUpgradeButton = document.getElementById('tapUpgradeButton');
             const tapUpgradeCostSpan = document.getElementById('tapUpgradeCost');
@@ -614,10 +654,12 @@
             }
         }
         
+        // Referral havolasini yangilash
         function updateReferralLink() {
             document.getElementById('referralLink').textContent = `https://t.me/UzbekCoinBot?start=ref_${userId}`;
         }
         
+        // Referral havolasini nusxalash
         function copyReferralLink() {
             const link = document.getElementById('referralLink').textContent;
             navigator.clipboard.writeText(link).then(() => {
@@ -625,6 +667,7 @@
             });
         }
         
+        // Topshiriqlarni yuklash
         function loadTasks() {
             const mockTasks = [
                 { id: 1, name: 'Telegram Guruh 1', description: 'Bizning Telegram guruhimizga qo\'shiling', reward: 2000, url: 'https://t.me/examplegroup1' },
@@ -654,6 +697,7 @@
             });
         }
         
+        // Topshiriqni bajarish
         async function completeTask(taskId, taskUrl) {
             if (userData.completed_tasks.includes(taskId)) {
                 return;
@@ -678,6 +722,7 @@
             }, 2000);
         }
         
+        // Offline earnings vaqtini tekshirish
         function checkOfflineEarnings() {
             const offlineTimer = document.getElementById('offlineTimer');
             const claimButton = document.getElementById('claimOfflineButton');
@@ -706,7 +751,7 @@
             }
         }
         
-        // Energy regeneration
+        // Energiyani avtomatik qayta to'ldirish
         setInterval(async () => {
             if (userData.energy < userData.max_energy) {
                 userData.energy = Math.min(userData.max_energy, userData.energy + 1);
